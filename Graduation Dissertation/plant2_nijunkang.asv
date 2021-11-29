@@ -1,0 +1,72 @@
+function [sys,x0,str,ts] = plant2_nijunkang(t,x,u,flag)
+% 此程序为快速非线性固定时间的仿真 
+switch flag
+  case 0
+    [sys,x0,str,ts]=mdlInitializeSizes;
+  case 1
+    sys=mdlDerivatives(t,x,u);
+  case {2,4,9}
+    sys=[];
+  case 3
+    sys=mdlOutputs(t,x,u);
+  otherwise
+    DAStudio.error('Simulink:blocks:unhandledFlag', num2str(flag));
+end
+
+function [sys,x0,str,ts]=mdlInitializeSizes
+sizes = simsizes;
+sizes.NumContStates  = 2;
+sizes.NumDiscStates  = 0;
+sizes.NumOutputs     = 4;
+sizes.NumInputs      = 1;
+sizes.DirFeedthrough = 0;
+sizes.NumSampleTimes = 0;   
+sys = simsizes(sizes);
+x0  = [pi/60 1];
+str = [];
+ts  = [];
+
+function sys=mdlDerivatives(t,x,u)
+% 倒立摆状态方程
+% 跟踪轨迹
+thd = 2*sin(t);
+dthd = 6*t^2;
+ddthd = 12*t;
+
+ut = u(1);     
+e = x(1);      % 摆角
+de = x(2);     % 摆速
+
+% 参数的定义
+f = ddthd + 25*(dthd - de);
+g = -133;
+
+% d = 10*sin(t);
+
+dde = f + g * ut;
+
+sys(1) = x(2);   
+sys(2) = dde;   
+
+function sys=mdlOutputs(t,x,u)
+thd = 2*t^3;
+dthd = 6*t^2;
+ddthd = 12*t;
+
+e = x(1);      % 摆角
+de = x(2);     % 摆速
+
+sys(1) = x(1);
+sys(2) = x(2);
+sys(3) = thd - e;
+sys(4) = dthd - de;
+
+
+
+
+
+
+
+
+
+
